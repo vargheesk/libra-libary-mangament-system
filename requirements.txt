@@ -6,3 +6,5 @@ pyzbar==0.1.9
 psycopg2-binary==2.9.11
 pandas==2.3.3
 numpy==2.2.6
+scipy==1.16.3
+python-barcode==0.16.1

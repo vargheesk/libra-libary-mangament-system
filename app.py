@@ -64,56 +64,57 @@ def main():
             msg_placeholder = st.empty()
             
             # Camera Loop
-            cap = cv2.VideoCapture(0)
+            start_auth = st.button("Start Camera", key="start_auth")
             
-            # Add a stop button to break the loop manually if needed
-            stop_auth = st.button("Stop Camera", key="stop_auth")
-            
-            while cap.isOpened() and not stop_auth:
-                ret, frame = cap.read()
-                if not ret:
-                    st.error("Failed to access camera.")
-                    break
+            if start_auth:
+                cap = cv2.VideoCapture(0)
+                stop_auth = st.button("Stop Camera", key="stop_auth")
                 
-                # Liveness Check
-                face_found, is_live, ear = authenticator.process_frame(frame)
+                while cap.isOpened() and not stop_auth:
+                    ret, frame = cap.read()
+                    if not ret:
+                        st.error("Failed to access camera.")
+                        break
+                    
+                    # Liveness Check
+                    face_found, is_live, ear = authenticator.process_frame(frame)
+                    
+                    # Draw info on frame
+                    cv2.putText(frame, f"Liveness: {'PASS' if is_live else 'FAIL'} (EAR: {ear:.2f})", 
+                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0) if is_live else (0, 0, 255), 2)
+                    
+                    # Show frame
+                    frame_placeholder.image(frame, channels="BGR")
+                    
+                    if is_live:
+                        # Try Recognition
+                        encoding = authenticator.get_face_encoding(frame)
+                        if encoding is not None:
+                            matches = face_recognition.compare_faces(known_encodings, encoding)
+                            face_distances = face_recognition.face_distance(known_encodings, encoding)
+                            
+                            if True in matches:
+                                best_match_index = np.argmin(face_distances)
+                                if matches[best_match_index]:
+                                    user_id = known_ids[best_match_index]
+                                    user_name = known_names[best_match_index]
+                                    
+                                    msg_placeholder.success(f"Authenticated as {user_name}!")
+                                    st.session_state.authenticated = True
+                                    st.session_state.user = {'id': user_id, 'name': user_name}
+                                    time.sleep(1) # Brief pause to show success
+                                    break
+                            else:
+                                msg_placeholder.warning("Face not recognized.")
+                    else:
+                        msg_placeholder.info("Please blink to verify liveness.")
+                    
+                    if stop_auth:
+                        break
                 
-                # Draw info on frame
-                cv2.putText(frame, f"Liveness: {'PASS' if is_live else 'FAIL'} (EAR: {ear:.2f})", 
-                           (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0) if is_live else (0, 0, 255), 2)
-                
-                # Show frame
-                frame_placeholder.image(frame, channels="BGR")
-                
-                if is_live:
-                    # Try Recognition
-                    encoding = authenticator.get_face_encoding(frame)
-                    if encoding is not None:
-                        matches = face_recognition.compare_faces(known_encodings, encoding)
-                        face_distances = face_recognition.face_distance(known_encodings, encoding)
-                        
-                        if True in matches:
-                            best_match_index = np.argmin(face_distances)
-                            if matches[best_match_index]:
-                                user_id = known_ids[best_match_index]
-                                user_name = known_names[best_match_index]
-                                
-                                msg_placeholder.success(f"Authenticated as {user_name}!")
-                                st.session_state.authenticated = True
-                                st.session_state.user = {'id': user_id, 'name': user_name}
-                                time.sleep(1) # Brief pause to show success
-                                break
-                        else:
-                            msg_placeholder.warning("Face not recognized.")
-                else:
-                    msg_placeholder.info("Please blink to verify liveness.")
-                
-                if stop_auth:
-                    break
-
-            cap.release()
-            if st.session_state.authenticated:
-                st.rerun()
+                cap.release()
+                if st.session_state.authenticated:
+                    st.rerun()
 
     # --- DASHBOARD PHASE ---
     else:

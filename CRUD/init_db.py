@@ -63,14 +63,26 @@ def create_tables(config):
             )
         """)
         
-        # Books Table
-        print("Creating books table...")
+        # Books Table (Metadata)
+        print("Creating books table (Metadata)...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS books (
-                barcode VARCHAR(50) PRIMARY KEY,
+                isbn VARCHAR(20) PRIMARY KEY,
                 title VARCHAR(200) NOT NULL,
                 author VARCHAR(100),
-                status VARCHAR(20) DEFAULT 'AVAILABLE'
+                category VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Book Copies Table (Physical Items)
+        print("Creating book_copies table (Physical Items)...")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS book_copies (
+                barcode VARCHAR(50) PRIMARY KEY,
+                book_isbn VARCHAR(20) REFERENCES books(isbn),
+                status VARCHAR(20) DEFAULT 'AVAILABLE',
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -80,7 +92,7 @@ def create_tables(config):
             CREATE TABLE IF NOT EXISTS transactions (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER REFERENCES users(id),
-                book_barcode VARCHAR(50) REFERENCES books(barcode),
+                copy_barcode VARCHAR(50) REFERENCES book_copies(barcode),
                 borrow_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 return_date TIMESTAMP,
                 status VARCHAR(20) DEFAULT 'BORROWED'
@@ -90,7 +102,7 @@ def create_tables(config):
         conn.commit()
         cur.close()
         conn.close()
-        print("Tables created successfully.")
+        print("Tables created successfully (Normalized Schema).")
     except Exception as e:
         print(f"Error creating tables: {e}")
 
