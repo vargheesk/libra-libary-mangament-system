@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from face_auth import FaceAuthenticator
 from scanner import decode_barcode
-from CRUD.db import get_all_users, borrow_book, return_book, get_user_history, get_book
+from CRUD.db import get_all_users, borrow_book, return_book, get_user_history, get_book_copy
 import face_recognition
 import pickle
 import time

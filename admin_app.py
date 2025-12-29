@@ -53,43 +53,58 @@ def main():
                 st.warning("Please provide both name and image.")
                 
     elif choice == "Add Book":
-        st.header("Add New Book")
+        st.header("Add New Book (Bulk Mode)")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            barcode_val = st.text_input("Barcode (Scan or Type)")
-            
-            # Optional: Live Scanner for adding books
-            if st.checkbox("Use Camera to Scan Barcode"):
-                cap = cv2.VideoCapture(0)
-                frame_placeholder = st.empty()
-                if st.button("Scan Now"):
-                    while cap.isOpened():
-                        ret, frame = cap.read()
-                        if not ret: break
-                        
-                        code, _ = decode_barcode(frame)
-                        frame_placeholder.image(frame, channels="BGR")
-                        
-                        if code:
-                            barcode_val = code
-                            st.success(f"Scanned: {code}")
-                            break
-                    cap.release()
+            isbn = st.text_input("ISBN / Book ID")
+            title = st.text_input("Book Title")
         
         with col2:
-            title = st.text_input("Book Title")
             author = st.text_input("Author")
+            category = st.selectbox("Category", ["Fiction", "Non-Fiction", "Science", "History", "Technology", "Other"])
+            quantity = st.number_input("Number of Copies", min_value=1, value=1, step=1)
             
-        if st.button("Add Book"):
-            if barcode_val and title:
-                if add_book(barcode_val, title, author):
-                    st.success(f"Book '{title}' added successfully!")
+        if st.button("Add Books & Generate Barcodes"):
+            if isbn and title:
+                success, barcodes = add_book(isbn, title, author, category, quantity)
+                if success:
+                    st.success(f"Successfully added {quantity} copies of '{title}'!")
+                    
+                    st.subheader("🖨️ Print Barcodes")
+                    st.info("Download these barcodes and stick them on the books.")
+                    
+                    # Display Barcodes
+                    cols = st.columns(3)
+                    for i, code in enumerate(barcodes):
+                        # Generate Barcode Image
+                        import barcode
+                        from barcode.writer import ImageWriter
+                        from io import BytesIO
+                        
+                        # Create barcode object
+                        EAN = barcode.get_barcode_class('code128')
+                        ean = EAN(code, writer=ImageWriter())
+                        
+                        # Save to buffer
+                        buffer = BytesIO()
+                        ean.write(buffer)
+                        
+                        # Display in grid
+                        with cols[i % 3]:
+                            st.image(buffer, caption=code, use_container_width=True)
+                            st.download_button(
+                                label=f"Download {code}",
+                                data=buffer.getvalue(),
+                                file_name=f"{code}.png",
+                                mime="image/png",
+                                key=f"btn_{code}"
+                            )
                 else:
-                    st.error("Failed to add book (maybe barcode exists?)")
+                    st.error("Failed to add books.")
             else:
-                st.warning("Barcode and Title are required.")
+                st.warning("ISBN and Title are required.")
 
 if __name__ == "__main__":
     main()

@@ -34,50 +34,76 @@ def get_all_users():
     conn.close()
     return users
 
-def add_book(barcode, title, author):
+def add_book(isbn, title, author, category, quantity):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute(
-            "INSERT INTO books (barcode, title, author) VALUES (%s, %s, %s)",
-            (barcode, title, author)
-        )
+        # 1. Check if book metadata exists
+        cur.execute("SELECT isbn FROM books WHERE isbn = %s", (isbn,))
+        if not cur.fetchone():
+            cur.execute(
+                "INSERT INTO books (isbn, title, author, category) VALUES (%s, %s, %s, %s)",
+                (isbn, title, author, category)
+            )
+        
+        # 2. Add copies
+        generated_barcodes = []
+        for i in range(quantity):
+            # Generate unique barcode: ISBN-TIMESTAMP-INDEX (Simple unique logic)
+            # Or simpler: ISBN-SEQ
+            # Let's use a counter based on existing copies
+            cur.execute("SELECT count(*) FROM book_copies WHERE book_isbn = %s", (isbn,))
+            count = cur.fetchone()[0]
+            new_suffix = count + 1 + i
+            barcode = f"{isbn}-{new_suffix:03d}"
+            
+            cur.execute(
+                "INSERT INTO book_copies (barcode, book_isbn) VALUES (%s, %s)",
+                (barcode, isbn)
+            )
+            generated_barcodes.append(barcode)
+            
         conn.commit()
-        return True
+        return True, generated_barcodes
     except Exception as e:
         conn.rollback()
         st.error(f"Error adding book: {e}")
-        return False
+        return False, []
     finally:
         cur.close()
         conn.close()
 
-def get_book(barcode):
+def get_book_copy(barcode):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT barcode, title, author, status FROM books WHERE barcode = %s", (barcode,))
+    cur.execute("""
+        SELECT c.barcode, b.title, b.author, c.status 
+        FROM book_copies c
+        JOIN books b ON c.book_isbn = b.isbn
+        WHERE c.barcode = %s
+    """, (barcode,))
     book = cur.fetchone()
     cur.close()
     conn.close()
     return book
 
-def borrow_book(user_id, book_barcode):
+def borrow_book(user_id, copy_barcode):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        # Check if book is available
-        cur.execute("SELECT status FROM books WHERE barcode = %s", (book_barcode,))
+        # Check if copy is available
+        cur.execute("SELECT status FROM book_copies WHERE barcode = %s", (copy_barcode,))
         status = cur.fetchone()
         if not status or status[0] != 'AVAILABLE':
-            return False, "Book not available"
+            return False, "Book copy not available"
 
-        # Update book status
-        cur.execute("UPDATE books SET status = 'BORROWED' WHERE barcode = %s", (book_barcode,))
+        # Update copy status
+        cur.execute("UPDATE book_copies SET status = 'BORROWED' WHERE barcode = %s", (copy_barcode,))
         
         # Create transaction
         cur.execute(
-            "INSERT INTO transactions (user_id, book_barcode, status) VALUES (%s, %s, 'BORROWED')",
-            (user_id, book_barcode)
+            "INSERT INTO transactions (user_id, copy_barcode, status) VALUES (%s, %s, 'BORROWED')",
+            (user_id, copy_barcode)
         )
         conn.commit()
         return True, "Book borrowed successfully"
@@ -88,22 +114,22 @@ def borrow_book(user_id, book_barcode):
         cur.close()
         conn.close()
 
-def return_book(user_id, book_barcode):
+def return_book(user_id, copy_barcode):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        # Check if book is borrowed by this user
+        # Check if borrowed by this user
         cur.execute("""
             SELECT id FROM transactions 
-            WHERE user_id = %s AND book_barcode = %s AND status = 'BORROWED'
-        """, (user_id, book_barcode))
+            WHERE user_id = %s AND copy_barcode = %s AND status = 'BORROWED'
+        """, (user_id, copy_barcode))
         transaction = cur.fetchone()
         
         if not transaction:
             return False, "No active borrow record found for this book and user"
 
-        # Update book status
-        cur.execute("UPDATE books SET status = 'AVAILABLE' WHERE barcode = %s", (book_barcode,))
+        # Update copy status
+        cur.execute("UPDATE book_copies SET status = 'AVAILABLE' WHERE barcode = %s", (copy_barcode,))
         
         # Update transaction
         cur.execute("""
@@ -124,9 +150,10 @@ def return_book(user_id, book_barcode):
 def get_user_history(user_id):
     conn = get_connection()
     query = """
-        SELECT t.borrow_date, t.return_date, t.status, b.title, b.author 
+        SELECT t.borrow_date, t.return_date, t.status, b.title, b.author, t.copy_barcode
         FROM transactions t
-        JOIN books b ON t.book_barcode = b.barcode
+        JOIN book_copies c ON t.copy_barcode = c.barcode
+        JOIN books b ON c.book_isbn = b.isbn
         WHERE t.user_id = %s
         ORDER BY t.borrow_date DESC
     """
