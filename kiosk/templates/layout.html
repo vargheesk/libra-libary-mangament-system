@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIBRA | Self-Service Kiosk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nano-gradient {
+            background: radial-gradient(circle at top left, #4f46e5, #0ea5e9);
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Top Status Bar -->
+    <nav class="px-10 py-6 flex justify-between items-center bg-white/50 backdrop-blur-md border-b border-white z-50">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 nano-gradient rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                <i class="fas fa-microchip text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-xl tracking-tighter outfit text-slate-900">LIBRA <span
+                        class="text-blue-600">KIOSK</span></h1>
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-[0.2em] leading-none">Smart Library
+                    Terminal</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="text-right hidden sm:block">
+                <p class="text-xs font-bold text-slate-800" id="time-display">--:--</p>
+                <p class="text-[9px] uppercase tracking-widest text-slate-400 font-semibold" id="date-display">READY</p>
+            </div>
+            <div class="h-8 w-[1px] bg-slate-200"></div>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]"></span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col p-6 sm:p-10 relative overflow-hidden">
+        <!-- Abstract Background Orbs -->
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-blue-100 rounded-full blur-[100px] opacity-60"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-100 rounded-full blur-[100px] opacity-60"></div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="fixed top-24 right-10 z-[100] space-y-4">
+            {% for category, message in messages %}
+            <div
+                class="p-4 rounded-xl {{ 'bg-red-50 text-red-600 border border-red-100' if category == 'error' else 'bg-emerald-50 text-emerald-600 border border-emerald-100' }} flex items-center gap-3 shadow-xl backdrop-blur-md animate-[slideIn_0.3s_ease-out]">
+                <i class="fas {{ 'fa-exclamation-circle' if category == 'error' else 'fa-check-circle' }}"></i>
+                <p class="text-sm font-bold">{{ message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="z-10 flex-grow flex flex-col">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="p-8 text-center bg-white/30 backdrop-blur-sm border-t border-white/50">
+        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">Authorized Access Only &bull;
+            Terminal ID: K-01</p>
+    </footer>
+
+    <script>
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('time-display').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            document.getElementById('date-display').innerText = now.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

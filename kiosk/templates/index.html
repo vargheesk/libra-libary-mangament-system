@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto w-full flex-grow flex flex-col justify-center">
+    <div class="text-center mb-12">
+        <h2 class="text-5xl font-black outfit text-slate-900 tracking-tighter mb-4">Welcome to <span
+                class="text-indigo-600">LIBRA</span></h2>
+        <p class="text-lg text-slate-500 font-medium">Please stand in front of the terminal for biometric verification.
+        </p>
+    </div>
+
+    <div class="relative max-w-2xl mx-auto w-full group">
+        <!-- Camera Container -->
+        <div
+            class="relative rounded-[2rem] overflow-hidden border-8 border-white shadow-2xl bg-slate-900 aspect-video flex items-center justify-center">
+            <video id="webcam" autoplay playsinline class="w-full h-full object-cover grayscale-[0.2]"></video>
+            <canvas id="canvas" class="hidden"></canvas>
+
+            <!-- Scanning UI Overlay -->
+            <div id="scanning-overlay" class="absolute inset-0 pointer-events-none hidden">
+                <div class="absolute inset-0 border-[40px] border-indigo-500/10"></div>
+                <!-- Scanning Line -->
+                <div
+                    class="absolute inset-x-0 h-1 bg-blue-500 shadow-[0_0_20px_#3b82f6] z-30 animate-[scan_2s_linear_infinite]">
+                </div>
+                <!-- Glass Overlay -->
+                <div class="absolute inset-0 bg-indigo-900/10 backdrop-blur-[1px]"></div>
+                <!-- Corner Brackets -->
+                <div class="absolute top-10 left-10 w-12 h-12 border-t-4 border-l-4 border-white/80 rounded-tl-lg">
+                </div>
+                <div class="absolute top-10 right-10 w-12 h-12 border-t-4 border-r-4 border-white/80 rounded-tr-lg">
+                </div>
+                <div class="absolute bottom-10 left-10 w-12 h-12 border-b-4 border-l-4 border-white/80 rounded-bl-lg">
+                </div>
+                <div class="absolute bottom-10 right-10 w-12 h-12 border-b-4 border-r-4 border-white/80 rounded-br-lg">
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state"
+                class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center z-50 transition-opacity duration-500">
+                <div class="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4">
+                </div>
+                <p class="text-indigo-400 font-bold uppercase tracking-widest text-xs">Initializing Optics...</p>
+            </div>
+        </div>
+
+        <!-- Verification Result Popup -->
+        <div id="result-popup" class="absolute inset-0 flex items-center justify-center z-[60] hidden">
+            <div
+                class="glass p-8 rounded-3xl shadow-2xl border-white text-center transform scale-90 animate-[pop_0.4s_cubic-bezier(0.175,0.885,0.32,1.275)_forwards]">
+                <div id="result-icon"
+                    class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"></div>
+                <h3 id="result-title" class="text-2xl font-black outfit mb-1"></h3>
+                <p id="result-message" class="text-slate-500 font-medium"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-16 flex justify-center gap-6">
+        <button id="capture-btn"
+            class="px-12 py-5 bg-slate-900 text-white rounded-2xl font-bold outfit text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-3 active:scale-95">
+            <i class="fas fa-face-viewfinder text-xl"></i>
+            AUTHENTICATE
+        </button>
+        <button onclick="location.reload()"
+            class="w-16 h-16 bg-white text-slate-400 rounded-2xl border border-slate-200 hover:text-slate-600 hover:border-slate-300 transition-all flex items-center justify-center">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </div>
+</div>
+
+<style>
+    @keyframes scan {
+        0% {
+            top: 10%;
+            opacity: 0.2;
+        }
+
+        50% {
+            top: 90%;
+            opacity: 1;
+        }
+
+        100% {
+            top: 10%;
+            opacity: 0.2;
+        }
+    }
+
+    @keyframes pop {
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
+
+<script>
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture-btn');
+    const scanOverlay = document.getElementById('scanning-overlay');
+    const loadingState = document.getElementById('loading-state');
+    const resultPopup = document.getElementById('result-popup');
+    const resultIcon = document.getElementById('result-icon');
+    const resultTitle = document.getElementById('result-title');
+    const resultMessage = document.getElementById('result-message');
+
+    // Start Webcam
+    async function initCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: 1280, height: 720 }
+            });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                loadingState.classList.add('opacity-0');
+                setTimeout(() => loadingState.classList.add('hidden'), 500);
+            };
+        } catch (err) {
+            console.error("Camera Error:", err);
+            alert("Please allow camera access!");
+        }
+    }
+
+    initCamera();
+
+    captureBtn.onclick = async () => {
+        // 1. UI Feedback
+        captureBtn.disabled = true;
+        captureBtn.classList.add('opacity-50');
+        scanOverlay.classList.remove('hidden');
+
+        // 2. Capture Frame
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+
+        // 3. Send to Server
+        try {
+            const response = await fetch('/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            });
+            const data = await response.json();
+
+            // 4. Handle Result
+            showResult(data);
+        } catch (err) {
+            showResult({ success: false, error: "Network communication failure" });
+        }
+    };
+
+    function showResult(data) {
+        scanOverlay.classList.add('hidden');
+        resultPopup.classList.remove('hidden');
+
+        if (data.success) {
+            resultIcon.className = "w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 text-3xl";
+            resultIcon.innerHTML = '<i class="fas fa-check"></i>';
+            resultTitle.innerText = "Access Granted";
+            resultTitle.classList.add('text-emerald-600');
+            resultMessage.innerText = `Welcome back, ${data.name}! Redirecting...`;
+
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 2000);
+        } else {
+            resultIcon.className = "w-20 h-20 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 text-3xl";
+            resultIcon.innerHTML = '<i class="fas fa-times"></i>';
+            resultTitle.innerText = "Access Denied";
+            resultTitle.classList.add('text-rose-600');
+            resultMessage.innerText = data.error || "Biometric profile not matched.";
+
+            setTimeout(() => {
+                resultPopup.classList.add('hidden');
+                captureBtn.disabled = false;
+                captureBtn.classList.remove('opacity-50');
+            }, 3000);
+        }
+    }
+</script>
+{% endblock %}
