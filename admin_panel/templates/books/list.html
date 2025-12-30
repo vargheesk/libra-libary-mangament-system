@@ -1,68 +1,82 @@
 {% extends "layout.html" %}
 
-{% block header %}Library Inventory{% endblock %}
+{% block header %}Resource Management{% endblock %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-8">
+<div class="flex justify-between items-center mb-6">
     <div>
-        <h3 class="text-xl font-bold text-slate-800 tracking-tight">Catalog Inventory</h3>
-        <p class="text-xs text-slate-500 mt-1">Manage bibliographic data and physical circulation.</p>
+        <h3 class="text-lg font-bold text-slate-800">Catalogue Management System</h3>
+        <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Bibliographic & Circulation Control</p>
     </div>
     <a href="{{ url_for('books_add') }}"
-        class="px-5 py-2 bg-slate-900 text-white rounded text-sm font-bold hover:bg-slate-800 transition-all shadow-sm">
-        <i class="fas fa-plus mr-2 text-[10px]"></i> Add Titles
+        class="px-5 py-2 bg-slate-900 text-white rounded text-[10px] font-bold hover:bg-slate-800 transition-all shadow-sm uppercase tracking-widest">
+        <i class="fas fa-plus mr-2"></i> Register New Title
     </a>
 </div>
 
-<div class="premium-box overflow-hidden">
-    <table class="w-full text-left text-sm">
+<div class="premium-box overflow-hidden border border-slate-200">
+    <table class="w-full text-left text-[11px] border-collapse bg-white">
         <thead>
-            <tr class="bg-slate-50 border-b border-slate-100">
-                <th class="px-6 py-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest">Resource Identifier
-                </th>
-                <th class="px-6 py-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest">Bibliographic
-                    Details</th>
-                <th class="px-6 py-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest text-center">
+            <tr class="bg-slate-50 border-b border-slate-200">
+                <th
+                    class="px-4 py-3 font-bold text-slate-500 uppercase tracking-tight border-r border-slate-200 w-12 text-center">
+                    #</th>
+                <th class="px-4 py-3 font-bold text-slate-500 uppercase tracking-tight border-r border-slate-200">ISBN
+                    Code</th>
+                <th class="px-4 py-3 font-bold text-slate-500 uppercase tracking-tight border-r border-slate-200">
+                    Bibliographic Data</th>
+                <th class="px-4 py-3 font-bold text-slate-500 uppercase tracking-tight border-r border-slate-200 w-32">
+                    Category</th>
+                <th
+                    class="px-4 py-3 font-bold text-slate-500 uppercase tracking-tight border-r border-slate-200 w-32 text-center">
                     Circulation</th>
-                <th class="px-6 py-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest text-right">
-                    Management</th>
+                <th
+                    class="px-4 py-3 font-bold text-slate-500 uppercase tracking-tight text-center w-36 bg-slate-100/50">
+                    Actions</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
             {% for book in books %}
-            <tr class="group hover:bg-slate-50/50 transition-colors">
-                <td class="px-6 py-4 font-mono text-xs text-slate-500">{{ book[0] }}</td>
-                <td class="px-6 py-4">
-                    <div class="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{{ book[1] }}
-                    </div>
-                    <div class="text-[11px] text-slate-400 uppercase tracking-tighter mt-0.5">{{ book[2] }} &bull; {{
-                        book[3] }}</div>
+            <tr class="hover:bg-indigo-50/20 transition-colors group">
+                <td class="px-4 py-3 font-mono text-slate-400 border-r border-slate-100 text-center">{{ loop.index }}
                 </td>
-                <td class="px-6 py-4 text-center">
-                    <div class="inline-flex flex-col items-center">
-                        <span class="text-[10px] font-bold text-slate-500 mb-1.5">{{ book[5] }} / {{ book[4] }} <span
-                                class="text-slate-300 font-normal">Available</span></span>
-                        <div class="w-20 h-1 bg-slate-100 rounded-full overflow-hidden">
+                <td class="px-4 py-3 border-r border-slate-100 font-mono text-slate-600">
+                    {{ book[0] }}
+                </td>
+                <td class="px-4 py-3 border-r border-slate-100">
+                    <div class="font-bold text-slate-800 tracking-tight">{{ book[1] }}</div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">{{ book[2] }}</div>
+                </td>
+                <td class="px-4 py-3 border-r border-slate-100 uppercase tracking-tighter text-slate-500">
+                    {{ book[3] }}
+                </td>
+                <td class="px-4 py-3 border-r border-slate-100 text-center">
+                    <div class="flex flex-col items-center">
+                        <span class="text-[10px] font-bold text-slate-700 mb-1">{{ book[5] }} / {{ book[4] }} <span
+                                class="text-slate-300 font-normal">UNIT</span></span>
+                        <div class="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
                             <div class="h-full bg-emerald-500 transition-all duration-1000"
                                 style="width: {{ (book[5]/book[4]*100) if book[4] > 0 else 0 }}%"></div>
                         </div>
                     </div>
                 </td>
-                <td class="px-6 py-4 text-right">
-                    <div
-                        class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <td class="px-4 py-3 text-center bg-slate-50/30">
+                    <div class="flex items-center justify-center gap-1.5">
                         <a href="{{ url_for('books_copies', isbn=book[0]) }}"
-                            class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded hover:bg-white hover:text-indigo-600 text-slate-400 transition-all shadow-sm">
-                            <i class="fas fa-layer-group text-xs"></i>
+                            class="px-2 py-1.5 border border-slate-200 rounded text-[9px] font-bold text-slate-500 hover:text-indigo-600 hover:bg-white transition-all shadow-sm uppercase tracking-tighter"
+                            title="Physical Inventory">
+                            <i class="fas fa-layer-group mr-1.5"></i> Copies
                         </a>
                         <a href="{{ url_for('books_edit', isbn=book[0]) }}"
-                            class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded hover:bg-white hover:text-slate-800 text-slate-400 transition-all shadow-sm">
-                            <i class="fas fa-pencil text-[10px]"></i>
+                            class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:text-slate-800 hover:bg-white transition-all shadow-sm"
+                            title="Edit Metadata">
+                            <i class="fas fa-edit text-[10px]"></i>
                         </a>
                         <form action="{{ url_for('books_delete', isbn=book[0]) }}" method="POST" class="inline"
-                            onsubmit="return confirm('WARNING: Permanent deletion of title and all copies.')">
+                            onsubmit="return confirm('Permanent deletion of title and all physically registered copies?')">
                             <button type="submit"
-                                class="w-8 h-8 flex items-center justify-center border border-rose-100 rounded hover:bg-rose-600 hover:text-white text-rose-300 transition-all shadow-sm">
+                                class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-400 hover:text-rose-600 hover:bg-white transition-all shadow-sm"
+                                title="Erase Record">
                                 <i class="fas fa-trash-alt text-[10px]"></i>
                             </button>
                         </form>
@@ -72,5 +86,14 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if not books %}
+    <div class="p-12 text-center">
+        <div
+            class="w-12 h-12 bg-slate-50 rounded border border-slate-100 flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-book-sparkles text-slate-300"></i>
+        </div>
+        <p class="text-[10px] uppercase font-bold text-slate-400">Inventory Empty</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

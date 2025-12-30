@@ -19,6 +19,10 @@ app.secret_key = 'supersecretkey' # Change this in production
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+@app.context_processor
+def inject_globals():
+    return dict(get_user=get_user)
+
 # --- ROUTES ---
 
 @app.route('/')
@@ -159,7 +163,7 @@ def books_delete(isbn):
 def books_copies(isbn):
     book = get_book(isbn)
     copies = get_book_copies(isbn)
-    return render_to_view('books/copies.html', book=book, copies=copies)
+    return render_template('books/copies.html', book=book, copies=copies)
 
 @app.route('/books/delete_copy/<barcode_val>')
 def books_delete_copy(barcode_val):
