@@ -28,6 +28,9 @@ def verify_face(captured_image_base64):
         if not captured_encodings:
             return None, "No face detected"
             
+        if len(captured_encodings) > 1:
+            return None, "Multiple faces detected. Please make sure only YOU are in the frame."
+
         captured_enc = captured_encodings[0]
         
         # Get all encodings from DB
