@@ -1,55 +1,90 @@
 {% extends "layout.html" %}
 
-{% block header %}Register New Member{% endblock %}
+{% block header %}Member Enrollment{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto">
-    <div class="glass p-10 rounded-3xl border border-white shadow-2xl">
-        <form action="{{ url_for('users_add') }}" method="POST" enctype="multipart/form-data">
-            <div class="space-y-6">
-                <!-- Name Input -->
+<div class="max-w-4xl mx-auto">
+    <div class="mb-10">
+        <h3 class="text-2xl font-bold text-slate-800 tracking-tight">Create Personal Profile</h3>
+        <p class="text-sm text-slate-500 mt-1">Populate member credentials and biometric data.</p>
+    </div>
+
+    <form action="{{ url_for('users_add') }}" method="POST" enctype="multipart/form-data">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Left Column: Personal Info -->
+            <div class="space-y-8">
                 <div>
-                    <label class="block text-sm font-semibold mb-2 text-slate-700">Full Name</label>
-                    <input type="text" name="name" required placeholder="John Doe"
-                        class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Legal
+                        Identity</label>
+                    <input type="text" name="name" required placeholder="Full Name"
+                        class="w-full px-0 py-3 bg-transparent border-b border-slate-200 focus:border-indigo-600 outline-none transition-all text-lg font-bold text-slate-800 placeholder:text-slate-300">
                 </div>
 
-                <!-- Photo Upload -->
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-slate-700">Member Photo (for
-                        Recognition)</label>
-                    <div id="drop-zone"
-                        class="relative group h-64 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 hover:border-indigo-400 transition-all cursor-pointer">
-                        <input type="file" name="photo" id="file-input" required accept="image/*"
-                            class="absolute inset-0 opacity-0 cursor-pointer">
-                        <div id="preview-container"
-                            class="hidden absolute inset-0 rounded-3xl overflow-hidden bg-white">
-                            <img id="preview-img" class="w-full h-full object-cover">
-                        </div>
-                        <div id="upload-prompt" class="text-center p-6 pointer-events-none">
-                            <div
-                                class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                <i class="fas fa-camera text-2xl text-indigo-500"></i>
-                            </div>
-                            <p class="font-medium text-slate-600">Drag & Drop or Click to Upload</p>
-                            <p class="text-xs text-slate-400 mt-1">Make sure the face is clearly visible</p>
-                        </div>
+                <div class="grid grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Birth
+                            Date</label>
+                        <input type="date" name="dob"
+                            class="w-full px-0 py-3 bg-transparent border-b border-slate-200 focus:border-indigo-600 outline-none transition-all text-slate-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phone
+                            Contact</label>
+                        <input type="tel" name="phone" placeholder="+1 (000) 000-0000"
+                            class="w-full px-0 py-3 bg-transparent border-b border-slate-200 focus:border-indigo-600 outline-none transition-all text-slate-600 placeholder:text-slate-300">
                     </div>
                 </div>
 
-                <div class="pt-4 flex gap-4">
-                    <button type="submit"
-                        class="flex-1 py-4 px-6 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-200 transform active:scale-95 transition-all">
-                        Complete Registration
-                    </button>
-                    <a href="{{ url_for('users_list') }}"
-                        class="py-4 px-8 bg-slate-100 text-slate-600 font-semibold rounded-2xl hover:bg-slate-200 transition-all">
-                        Cancel
-                    </a>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Residential
+                        Address</label>
+                    <textarea name="address" rows="3" placeholder="Street, City, Postal Code"
+                        class="w-full px-0 py-3 bg-transparent border-b border-slate-200 focus:border-indigo-600 outline-none transition-all text-slate-600 placeholder:text-slate-300 resize-none"></textarea>
                 </div>
             </div>
-        </form>
-    </div>
+
+            <!-- Right Column: Biometrics -->
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Biometric
+                    Verification Profile</label>
+                <div id="drop-zone"
+                    class="relative group h-80 border border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center bg-slate-50/30 hover:bg-slate-50 hover:border-indigo-300 transition-all cursor-pointer overflow-hidden">
+                    <input type="file" name="photo" id="file-input" required accept="image/*"
+                        class="absolute inset-0 opacity-0 cursor-pointer z-10">
+
+                    <div id="preview-container" class="hidden absolute inset-0 z-0">
+                        <img id="preview-img" class="w-full h-full object-cover">
+                        <div
+                            class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span class="text-white text-xs font-bold uppercase tracking-widest">Replace Identification
+                                Photo</span>
+                        </div>
+                    </div>
+
+                    <div id="upload-prompt" class="text-center p-8">
+                        <div
+                            class="w-12 h-12 bg-white rounded border border-slate-100 shadow-sm flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-camera text-slate-400"></i>
+                        </div>
+                        <p class="text-sm font-bold text-slate-700">Upload Identity Image</p>
+                        <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-tight leading-relaxed">Ensure high
+                            clarity and <br> frontal facial visibility.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-16 pt-8 border-t border-slate-100 flex items-center gap-6">
+            <button type="submit"
+                class="px-10 py-4 bg-slate-900 text-white font-bold rounded text-sm hover:bg-slate-800 transition-all shadow-lg active:scale-95 shadow-slate-200">
+                Confirm Enrollment
+            </button>
+            <a href="{{ url_for('users_list') }}"
+                class="text-sm font-bold text-slate-400 hover:text-slate-600 transition-all">
+                Discard Changes
+            </a>
+        </div>
+    </form>
 </div>
 
 <script>

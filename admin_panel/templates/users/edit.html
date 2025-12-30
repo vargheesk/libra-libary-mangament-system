@@ -1,35 +1,83 @@
 {% extends "layout.html" %}
 
-{% block header %}Update Member Details{% endblock %}
+{% block header %}Identity Management{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto">
-    <div class="glass p-10 rounded-3xl border border-white shadow-2xl">
-        <form action="{{ url_for('users_edit', id=user[0]) }}" method="POST">
-            <div class="space-y-6">
+<div class="max-w-4xl mx-auto">
+    <div class="mb-10 flex items-center justify-between">
+        <div>
+            <h3 class="text-2xl font-bold text-slate-800 tracking-tight">Modify Member Credentials</h3>
+            <p class="text-sm text-slate-500 mt-1">Updating profile for record <span
+                    class="font-mono text-indigo-600">ID-{{ "%04d" % user[0] }}</span></p>
+        </div>
+        <div
+            class="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded uppercase tracking-widest border border-emerald-100">
+            Active Registry
+        </div>
+    </div>
+
+    <form action="{{ url_for('users_edit', id=user[0]) }}" method="POST">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Left Column: Personal Info -->
+            <div class="space-y-8">
                 <div>
-                    <label class="block text-sm font-semibold mb-2 text-slate-700">Member Name</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Legal
+                        Identity</label>
                     <input type="text" name="name" value="{{ user[1] }}" required
-                        class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                        class="w-full px-0 py-3 bg-transparent border-b border-slate-200 focus:border-indigo-600 outline-none transition-all text-lg font-bold text-slate-800">
                 </div>
 
-                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 italic text-sm text-slate-500">
-                    <i class="fas fa-info-circle text-amber-500 mr-2"></i> Face encodings are permanent for security. To
-                    update the photo, please delete and re-register the member.
+                <div class="grid grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Birth
+                            Date</label>
+                        <input type="date" name="dob" value="{{ user[2] if user[2] else '' }}"
+                            class="w-full px-0 py-3 bg-transparent border-b border-slate-200 focus:border-indigo-600 outline-none transition-all text-slate-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phone
+                            Contact</label>
+                        <input type="tel" name="phone" value="{{ user[3] if user[3] else '' }}"
+                            class="w-full px-0 py-3 bg-transparent border-b border-slate-200 focus:border-indigo-600 outline-none transition-all text-slate-600">
+                    </div>
                 </div>
 
-                <div class="pt-4 flex gap-4">
-                    <button type="submit"
-                        class="flex-1 py-4 px-6 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 shadow-xl shadow-slate-200 transform active:scale-95 transition-all">
-                        Save Changes
-                    </button>
-                    <a href="{{ url_for('users_list') }}"
-                        class="py-4 px-8 bg-slate-100 text-slate-600 font-semibold rounded-2xl hover:bg-slate-200 transition-all">
-                        Go Back
-                    </a>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Residential
+                        Address</label>
+                    <textarea name="address" rows="3"
+                        class="w-full px-0 py-3 bg-transparent border-b border-slate-200 focus:border-indigo-600 outline-none transition-all text-slate-600 resize-none">{{ user[4] if user[4] else '' }}</textarea>
                 </div>
             </div>
-        </form>
-    </div>
+
+            <!-- Right Column: Status & Info -->
+            <div class="space-y-8">
+                <div class="p-6 bg-slate-50 border border-slate-100 rounded">
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Security Notice</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed italic">
+                        <i class="fas fa-fingerprint text-indigo-400 mr-2"></i> Biometric signatures (face encodings)
+                        are immutable. To re-register biometric data, the current profile must be decommissioned and
+                        recreated.
+                    </p>
+                </div>
+
+                <div class="p-6 border border-slate-100 rounded border-dashed">
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">System Audit</h4>
+                    <span class="text-[10px] font-mono text-slate-400">UUID: {{ user[0] }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-16 pt-8 border-t border-slate-100 flex items-center gap-6">
+            <button type="submit"
+                class="px-10 py-4 bg-slate-900 text-white font-bold rounded text-sm hover:bg-slate-800 transition-all shadow-lg active:scale-95">
+                Apply Credentials Update
+            </button>
+            <a href="{{ url_for('users_list') }}"
+                class="text-sm font-bold text-slate-400 hover:text-slate-600 transition-all">
+                Cancel Update
+            </a>
+        </div>
+    </form>
 </div>
 {% endblock %}
