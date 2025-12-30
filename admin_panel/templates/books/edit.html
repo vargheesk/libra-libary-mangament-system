@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block header %}Edit Book Info{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass p-10 rounded-3xl border border-white shadow-2xl">
+        <form action="{{ url_for('books_edit', isbn=book[0]) }}" method="POST">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-slate-700">ISBN (Permanent)</label>
+                    <input type="text" value="{{ book[0] }}" disabled
+                        class="w-full px-5 py-4 bg-slate-100 border border-slate-200 rounded-2xl text-slate-400 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-slate-700">Title</label>
+                    <input type="text" name="title" value="{{ book[1] }}" required
+                        class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold">
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Author</label>
+                        <input type="text" name="author" value="{{ book[2] }}"
+                            class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Category</label>
+                        <select name="category"
+                            class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none cursor-pointer">
+                            <option {% if book[3]=='Fiction' %}selected{% endif %}>Fiction</option>
+                            <option {% if book[3]=='Non-Fiction' %}selected{% endif %}>Non-Fiction</option>
+                            <option {% if book[3]=='Science' %}selected{% endif %}>Science</option>
+                            <option {% if book[3]=='History' %}selected{% endif %}>History</option>
+                            <option {% if book[3]=='Technology' %}selected{% endif %}>Technology</option>
+                            <option {% if book[3]=='Literature' %}selected{% endif %}>Literature</option>
+                            <option {% if book[3]=='Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-4">
+                    <button type="submit"
+                        class="flex-1 py-4 px-6 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 shadow-xl transition-all">
+                        Update Metadata
+                    </button>
+                    <a href="{{ url_for('books_list') }}"
+                        class="py-4 px-8 bg-slate-100 text-slate-600 font-semibold rounded-2xl hover:bg-slate-200 transition-all">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

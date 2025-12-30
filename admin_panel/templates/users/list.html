@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block header %}Member Management{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h3 class="text-xl font-bold text-slate-800 tracking-tight">Access Registry</h3>
+        <p class="text-xs text-slate-500 mt-1">Authorized library members for biometric authentication.</p>
+    </div>
+    <a href="{{ url_for('users_add') }}"
+        class="px-5 py-2 bg-indigo-600 text-white rounded text-sm font-bold hover:bg-indigo-700 transition-all shadow-sm">
+        <i class="fas fa-plus mr-2 text-[10px]"></i> New Member
+    </a>
+</div>
+
+<div class="premium-box overflow-hidden">
+    <table class="w-full text-left text-sm">
+        <thead>
+            <tr class="bg-slate-50 border-b border-slate-100">
+                <th class="px-6 py-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest">Internal ID</th>
+                <th class="px-6 py-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest">Full Name</th>
+                <th class="px-6 py-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest">Registration Status
+                </th>
+                <th class="px-6 py-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest text-right">
+                    Management</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            {% for user in users %}
+            <tr class="group hover:bg-slate-50/50 transition-colors">
+                <td class="px-6 py-4 font-mono text-xs text-slate-500">ID-{{ "%04d" % user[0] }}</td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-7 h-7 rounded border border-slate-200 bg-white flex items-center justify-center text-slate-400">
+                            <i class="fas fa-user text-[10px]"></i>
+                        </div>
+                        <span class="font-bold text-slate-800">{{ user[1] }}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs font-bold text-slate-700 tracking-tight">{{ user[3] if user[3] else 'No
+                            Phone' }}</span>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-tighter mt-0.5">Joined {{
+                            user[2].strftime('%d %b %Y') }}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <div
+                        class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <a href="{{ url_for('users_edit', id=user[0]) }}"
+                            class="w-8 h-8 flex items-center justify-center border border-slate-200 rounded hover:bg-white hover:text-slate-800 text-slate-400 transition-all shadow-sm">
+                            <i class="fas fa-edit text-[10px]"></i>
+                        </a>
+                        <form action="{{ url_for('users_delete', id=user[0]) }}" method="POST" class="inline"
+                            onsubmit="return confirm('WARNING: Permanent deletion of member profile.')">
+                            <button type="submit"
+                                class="w-8 h-8 flex items-center justify-center border border-rose-100 rounded hover:bg-rose-600 hover:text-white text-rose-300 transition-all shadow-sm">
+                                <i class="fas fa-user-minus text-[10px]"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

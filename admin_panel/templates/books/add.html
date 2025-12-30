@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block header %}Expand Collection{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="glass p-10 rounded-3xl border border-white shadow-2xl">
+        <form action="{{ url_for('books_add') }}" method="POST">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- ISBN -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold mb-2 text-slate-700">ISBN / Global Identifier</label>
+                    <input type="text" name="isbn" required placeholder="978-XXXXXXXXXX"
+                        class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-mono">
+                </div>
+
+                <!-- Title -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold mb-2 text-slate-700">Book Title</label>
+                    <input type="text" name="title" required placeholder="The Great Discovery"
+                        class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                </div>
+
+                <!-- Author -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-slate-700">Author</label>
+                    <input type="text" name="author" placeholder="Jane Doe"
+                        class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-slate-700">Category</label>
+                    <select name="category"
+                        class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none cursor-pointer">
+                        <option>Fiction</option>
+                        <option>Non-Fiction</option>
+                        <option>Science</option>
+                        <option>History</option>
+                        <option>Technology</option>
+                        <option>Literature</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <!-- Quantity -->
+                <div
+                    class="md:col-span-2 p-6 bg-indigo-50 rounded-3xl border border-indigo-100 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-indigo-900">Physical Copies to Add</h4>
+                        <p class="text-xs text-indigo-600">The system will generate unique barcodes for each copy.</p>
+                    </div>
+                    <div class="flex items-center gap-4 bg-white p-2 rounded-2xl shadow-sm">
+                        <button type="button" onclick="qty.value = Math.max(1, parseInt(qty.value)-1)"
+                            class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200">-</button>
+                        <input type="number" name="quantity" id="qty" value="1" min="1"
+                            class="w-12 text-center font-bold outline-none border-none bg-transparent">
+                        <button type="button" onclick="qty.value = parseInt(qty.value)+1"
+                            class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200">+</button>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 pt-4 flex gap-4">
+                    <button type="submit"
+                        class="flex-1 py-4 px-6 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 shadow-xl transform active:scale-95 transition-all">
+                        Process and Generate Barcodes
+                    </button>
+                    <a href="{{ url_for('books_list') }}"
+                        class="py-4 px-8 bg-slate-100 text-slate-600 font-semibold rounded-2xl hover:bg-slate-200 transition-all">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
