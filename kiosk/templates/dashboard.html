@@ -39,11 +39,18 @@
 
                 <form action="{{ url_for('borrow') }}" method="POST" class="space-y-6">
                     <div>
-                        <div class="relative group">
-                            <i
-                                class="fas fa-barcode absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors"></i>
-                            <input type="text" name="barcode" required autofocus placeholder="Scan or Enter Barcode"
-                                class="w-full pl-14 pr-5 py-5 bg-white border border-slate-100 rounded-2xl shadow-inner focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-lg font-mono">
+                        <div class="relative group flex gap-2">
+                            <div class="relative flex-grow">
+                                <i
+                                    class="fas fa-barcode absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors"></i>
+                                <input type="text" name="barcode" required autofocus placeholder="Scan or Enter Barcode"
+                                    class="w-full pl-14 pr-5 py-5 bg-white border border-slate-100 rounded-2xl shadow-inner focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-lg font-mono">
+                            </div>
+                            <button type="button" onclick="startScanning()"
+                                class="px-6 py-5 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all shadow-md active:scale-95"
+                                title="Open Camera Scanner">
+                                <i class="fas fa-camera"></i>
+                            </button>
                         </div>
                         <p class="text-[10px] text-slate-400 mt-3 flex items-center gap-2 px-2">
                             <i class="fas fa-info-circle text-indigo-400"></i>
@@ -101,17 +108,16 @@
 
                         <div class="flex items-center gap-8">
                             <div class="text-right hidden sm:block">
-                                <p class="text-[9px] uppercase font-bold text-slate-300 tracking-widest mb-1">Due Date
-                                </p>
-                                <p
-                                    class="text-xs font-black outfit {{ 'text-rose-500' if (book[4] < now.date()) else 'text-slate-600' }}">
-                                    {{ book[4].strftime('%d %b %Y') }}
+                                <p class="text-[9px] uppercase font-bold text-slate-300 tracking-widest mb-1">Borrowed
+                                    On</p>
+                                <p class="text-xs font-black outfit text-indigo-500">
+                                    {{ book[3].strftime('%d %b %Y') }}
                                 </p>
                             </div>
-                            <a href="{{ url_for('return_book', barcode=book[0]) }}"
+                            <button type="button" onclick="initiateReturn('{{ book[0] }}')"
                                 class="px-6 py-3 bg-white border border-slate-200 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all active:scale-95 shadow-sm">
                                 RETURN
-                            </a>
+                            </button>
                         </div>
                     </div>
                     {% else %}
@@ -129,4 +135,19 @@
         </div>
     </div>
 </div>
+</div>
+{% include 'scanner.html' %}
+<script>
+    function initiateReturn(expectedBarcode) {
+        startScanning((scannedBarcode) => {
+            if (scannedBarcode === expectedBarcode) {
+                // Success - Redirect to return
+                window.location.href = `/return/${expectedBarcode}`;
+            } else {
+                // Error - Mismatch
+                alert(`Barcode mismatch! Expected: ${expectedBarcode}, Scanned: ${scannedBarcode}. Please scan the correct book.`);
+            }
+        });
+    }
+</script>
 {% endblock %}

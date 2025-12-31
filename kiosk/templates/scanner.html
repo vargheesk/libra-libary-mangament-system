@@ -1,0 +1,93 @@
+<!-- Barcode Scanner Modal -->
+<div id="scanner-modal"
+    class="fixed inset-0 z-[70] bg-slate-900/90 backdrop-blur-md hidden flex items-center justify-center">
+    <div class="relative w-full max-w-2xl bg-black rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white/20">
+        <video id="barcode-video" class="w-full h-80 object-cover opacity-80" autoplay playsinline></video>
+        <canvas id="barcode-canvas" class="hidden"></canvas>
+
+        <!-- Overlay -->
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-1/2 left-0 w-full h-[2px] bg-red-500 shadow-[0_0_20px_#ef4444] animate-pulse">
+            </div>
+            <p class="absolute bottom-6 w-full text-center text-white font-mono text-sm tracking-widest uppercase">Align
+                Barcode within Frame</p>
+        </div>
+
+        <button onclick="stopScanning()"
+            class="absolute top-4 right-4 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-red-600 transition-all backdrop-blur-sm z-50">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+    const barcodeInput = document.querySelector('input[name="barcode"]');
+    const scannerModal = document.getElementById('scanner-modal');
+    const barcodeVideo = document.getElementById('barcode-video');
+    const barcodeCanvas = document.getElementById('barcode-canvas');
+    let scanInterval;
+    let onScanSuccessCallback = null;
+
+    function startScanning(callback = null) {
+        onScanSuccessCallback = callback;
+        scannerModal.classList.remove('hidden');
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                barcodeVideo.srcObject = stream;
+                // Play Promise to avoid Autoplay Policy issues
+                barcodeVideo.play();
+                scanInterval = setInterval(scanFrame, 500); // Scan every 500ms
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Camera access denied or unavailable. Please enable camera permissions.');
+                stopScanning();
+            });
+    }
+
+    function stopScanning() {
+        scannerModal.classList.add('hidden');
+        clearInterval(scanInterval);
+        if (barcodeVideo.srcObject) {
+            barcodeVideo.srcObject.getTracks().forEach(track => track.stop());
+        }
+        onScanSuccessCallback = null;
+    }
+
+    async function scanFrame() {
+        if (!barcodeVideo.videoWidth) return;
+
+        barcodeCanvas.width = barcodeVideo.videoWidth;
+        barcodeCanvas.height = barcodeVideo.videoHeight;
+        barcodeCanvas.getContext('2d').drawImage(barcodeVideo, 0, 0);
+
+        const imageData = barcodeCanvas.toDataURL('image/jpeg', 0.5);
+
+        try {
+            const response = await fetch('/scan_barcode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                // Sound Effect
+                try {
+                    const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-scanner-beep-check-out-3054.mp3');
+                    await audio.play();
+                } catch (e) { console.log('Audio blocked'); }
+
+                if (onScanSuccessCallback) {
+                    onScanSuccessCallback(data.barcode);
+                } else if (barcodeInput) {
+                    barcodeInput.value = data.barcode;
+                }
+
+                stopScanning();
+            }
+        } catch (err) {
+            console.log("Scanning...");
+        }
+    }
+</script>

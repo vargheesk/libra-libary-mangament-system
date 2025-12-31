@@ -8,6 +8,7 @@ import io
 from PIL import Image
 from db import get_all_user_encodings, get_user_session_data, process_borrow, process_return
 from datetime import datetime
+from pyzbar.pyzbar import decode
 
 app = Flask(__name__)
 app.secret_key = 'kiosk_secure_key_999'
@@ -83,6 +84,31 @@ def dashboard():
     
     data = get_user_session_data(session['user_id'])
     return render_template('dashboard.html', name=data['name'], books=data['books'], now=datetime.now())
+
+@app.route('/scan_barcode', methods=['POST'])
+def scan_barcode_route():
+    try:
+        data = request.json
+        image_data = data.get('image')
+        if not image_data:
+            return jsonify({"success": False, "error": "No image data"})
+
+        # Decode base64
+        encoded_data = image_data.split(',')[1]
+        nparr = np.frombuffer(base64.b64decode(encoded_data), np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE) # Use grayscale for better barcode reading
+        
+        # Decode barcode
+        decoded_objects = decode(img)
+        if decoded_objects:
+            obj = decoded_objects[0]
+            barcode_val = obj.data.decode('utf-8')
+            barcode_type = obj.type
+            return jsonify({"success": True, "barcode": barcode_val, "type": barcode_type})
+            
+        return jsonify({"success": False, "error": "No barcode found"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 @app.route('/borrow', methods=['POST'])
 def borrow():

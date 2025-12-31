@@ -34,7 +34,7 @@ def get_user_session_data(user_id):
     
     # Get active borrowed books
     cur.execute("""
-        SELECT bc.barcode, b.title, b.author, t.borrow_date, t.due_date
+        SELECT bc.barcode, b.title, b.author, t.borrow_date
         FROM transactions t
         JOIN book_copies bc ON t.copy_barcode = bc.barcode
         JOIN books b ON bc.book_isbn = b.isbn
@@ -78,8 +78,8 @@ def process_borrow(user_id, barcode):
             return False, "Book is not available or does not exist."
             
         cur.execute("""
-            INSERT INTO transactions (user_id, copy_barcode, borrow_date, due_date)
-            VALUES (%s, %s, CURRENT_TIMESTAMP, CURRENT_DATE + INTERVAL '14 days')
+            INSERT INTO transactions (user_id, copy_barcode, borrow_date)
+            VALUES (%s, %s, CURRENT_TIMESTAMP)
         """, (user_id, barcode))
         
         cur.execute("UPDATE book_copies SET status = 'BORROWED' WHERE barcode = %s", (barcode,))
