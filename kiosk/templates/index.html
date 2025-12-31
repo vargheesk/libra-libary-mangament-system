@@ -14,7 +14,9 @@
         <div
             class="relative rounded-[2rem] overflow-hidden border-8 border-white shadow-2xl bg-slate-900 aspect-video flex items-center justify-center">
             <video id="webcam" autoplay playsinline
-                class="w-full h-full object-cover grayscale-[0.2] -scale-x-100"></video>
+                class="w-full h-full object-cover grayscale-[0.2] -scale-x-100 transition-opacity duration-300"></video>
+            <img id="capture-preview"
+                class="absolute inset-0 w-full h-full object-cover grayscale-[0.2] -scale-x-100 hidden z-10">
             <canvas id="canvas" class="hidden"></canvas>
 
             <!-- Scanning UI Overlay -->
@@ -22,7 +24,7 @@
                 <div class="absolute inset-0 border-[40px] border-indigo-500/10"></div>
                 <!-- Scanning Line -->
                 <div
-                    class="absolute inset-x-0 h-1 bg-blue-500 shadow-[0_0_20px_#3b82f6] z-30 animate-[scan_2s_linear_infinite]">
+                    class="absolute inset-x-0 h-1 bg-blue-500 shadow-[0_0_20px_#3b82f6] z-30 animate-[scan_4s_linear_infinite]">
                 </div>
                 <!-- Glass Overlay -->
                 <div class="absolute inset-0 bg-indigo-900/10 backdrop-blur-[1px]"></div>
@@ -99,6 +101,7 @@
 
 <script>
     const video = document.getElementById('webcam');
+    const capturePreview = document.getElementById('capture-preview');
     const canvas = document.getElementById('canvas');
     const captureBtn = document.getElementById('capture-btn');
     const scanOverlay = document.getElementById('scanning-overlay');
@@ -133,11 +136,16 @@
         captureBtn.classList.add('opacity-50');
         scanOverlay.classList.remove('hidden');
 
-        // 2. Capture Frame
+        // 2. Capture Frame and Freeze
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
         const imageData = canvas.toDataURL('image/jpeg', 0.8);
+
+        // Show Freeze Frame
+        capturePreview.src = imageData;
+        capturePreview.classList.remove('hidden');
+        video.classList.add('opacity-0');
 
         // 3. Send to Server
         try {
@@ -178,6 +186,8 @@
 
             setTimeout(() => {
                 resultPopup.classList.add('hidden');
+                capturePreview.classList.add('hidden');
+                video.classList.remove('opacity-0');
                 captureBtn.disabled = false;
                 captureBtn.classList.remove('opacity-50');
             }, 3000);
