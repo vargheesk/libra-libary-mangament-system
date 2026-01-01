@@ -1,17 +1,15 @@
-import psycopg2
-import toml
-import os
-from datetime import datetime
-import pandas as pd
+from dotenv import load_dotenv
 
-def get_config():
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    secrets_path = os.path.join(base_dir, '.streamlit', 'secrets.toml')
-    return toml.load(secrets_path)
+# Load environment variables
+load_dotenv()
 
 def get_connection():
-    config = get_config()
-    return psycopg2.connect(**config['postgres'])
+    return psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
+    )
 
 # --- USER CRUD ---
 

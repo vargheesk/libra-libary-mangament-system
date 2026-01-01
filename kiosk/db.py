@@ -1,11 +1,18 @@
 import psycopg2
-import toml
 import os
 import pickle
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 def get_connection():
-    config = toml.load(os.path.join(os.path.dirname(__file__), '..', '.streamlit', 'secrets.toml'))
-    return psycopg2.connect(**config['postgres'])
+    return psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
+    )
 
 def get_all_user_encodings():
     """Returns a list of (id, name, encoding) for all registered users."""
