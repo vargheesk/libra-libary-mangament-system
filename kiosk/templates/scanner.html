@@ -34,7 +34,7 @@
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => {
                 barcodeVideo.srcObject = stream;
-                // Play Promise to avoid Autoplay Policy issues
+
                 barcodeVideo.play();
                 scanInterval = setInterval(scanFrame, 500); // Scan every 500ms
             })
@@ -61,7 +61,7 @@
         barcodeCanvas.height = barcodeVideo.videoHeight;
         barcodeCanvas.getContext('2d').drawImage(barcodeVideo, 0, 0);
 
-        const imageData = barcodeCanvas.toDataURL('image/jpeg', 0.5);
+        const imageData = barcodeCanvas.toDataURL('image/jpeg', 0.8);
 
         try {
             const response = await fetch('/scan_barcode', {
@@ -76,7 +76,7 @@
                 try {
                     const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-scanner-beep-check-out-3054.mp3');
                     await audio.play();
-                } catch (e) { console.log('Audio blocked'); }
+                } catch (e) { console.log(e); }
 
                 if (onScanSuccessCallback) {
                     onScanSuccessCallback(data.barcode);
@@ -87,7 +87,7 @@
                 stopScanning();
             }
         } catch (err) {
-            console.log("Scanning...");
+            console.log(err);
         }
     }
 </script>

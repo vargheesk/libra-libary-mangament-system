@@ -96,10 +96,16 @@ def scan_barcode_route():
         # Decode base64
         encoded_data = image_data.split(',')[1]
         nparr = np.frombuffer(base64.b64decode(encoded_data), np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE) # Use grayscale for better barcode reading
+        img = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
         
-        # Decode barcode
+        # Initial decode
         decoded_objects = decode(img)
+        
+        # If not found, try enhancing contrast
+        if not decoded_objects:
+            enhanced_img = cv2.equalizeHist(img)
+            decoded_objects = decode(enhanced_img)
+
         if decoded_objects:
             obj = decoded_objects[0]
             barcode_val = obj.data.decode('utf-8')
@@ -108,6 +114,7 @@ def scan_barcode_route():
             
         return jsonify({"success": False, "error": "No barcode found"})
     except Exception as e:
+        print(f"Barcode Scan Error: {e}")
         return jsonify({"success": False, "error": str(e)})
 
 @app.route('/borrow', methods=['POST'])

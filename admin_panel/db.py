@@ -1,3 +1,5 @@
+import psycopg2
+import os
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -204,6 +206,8 @@ def get_stats():
     cur = conn.cursor()
     
     cur.execute("SELECT COUNT(*) FROM books")
+    # print(cur.fetchone())
+    # print(cur.fetchone()[0])
     total_books = cur.fetchone()[0]
     
     cur.execute("SELECT COUNT(*) FROM users")
